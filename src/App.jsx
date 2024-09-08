@@ -23,17 +23,33 @@ const User = () => {
   return <div>User:{contextValue.appState.user.name}</div>
 
 }
+
+// reducer
+const reducer = (state,{type,payload})=>{
+  if(type === 'updateUser'){
+    return {
+      ...state,
+      user:{
+          ...state.user,
+          ...payload
+      }
+    }
+  }else{
+    return state
+  }
+}
 const UserModifier = () => {
-  const contextValue = useContext(appContext)
+  const {appState, setAppState} = useContext(appContext)
 
   const onChange = (e) => {
-    contextValue.appState.user.name = e.target.value
+    appState.user.name = e.target.value
 
     // setAppState 会触发 contextValue.appState 的更新，前提条件是不能给原来对象的引用，必须给一个新的对象
-    contextValue.setAppState({...contextValue.appState})
+    // 此原因从而引导reducer的诞生{...contextValue.appState}
+    setAppState(reducer(appState,{type:'updateUser',payload:{name:e.target.value}}))
   }
   return <div>
-    <input value={contextValue.appState.user.name}
+    <input value={appState.user.name}
       onChange={onChange}/>
   </div>
 }
