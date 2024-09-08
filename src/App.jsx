@@ -1,31 +1,7 @@
 // 请从课程简介里下载本代码
-import React, { useContext, useEffect, useState } from 'react'
+import React, { useContext } from 'react'
+import { appContext, connect, store } from './redux.jsx'
 
-const appContext = React.createContext(null)
-
-// 为防止一个地方改动User,所有组件都执行render
-// 将store放在外面,然后只有被connect的组件在state变化的时候才会执行
-const store = {
-  state:{
-    user:{
-      name:'af',
-      age:25
-    }
-  },
-  setState: (newState) =>{
-    // console.log(newState,'---newState')
-    store.state = newState
-    store.listeners.map(fn => fn(store.state))
-  },
-  listeners:[],
-  subscribe(fn){
-    store.listeners.push(fn)
-    return ()=>{
-      const index = store.listeners.indexOf(fn)
-      store.listeners.splice(index,1)
-    }
-  }
-}
 export const App = () => {
 
   return (
@@ -53,20 +29,7 @@ const User =connect(({state,dispatch}) => {
   return <div>User:{state.user.name}</div>
 })
 
-// reducer 规范state的创建流程
-const reducer = (state,{type,payload})=>{
-  if(type === 'updateUser'){
-    return {
-      ...state,
-      user:{
-          ...state.user,
-          ...payload
-      }
-    }
-  }else{
-    return state
-  }
-}
+
   // react规定只能在组件内部使用Hooks,
   // 为了使得dispatch函数被抽离，dispatch的使用需要通过一个外层组件包裹
   // dispatch 的目的是为了规范setState的流程
@@ -80,27 +43,6 @@ const  Wrapper = ()=>{
   return <UserModifier dispatch={dispatch} state={appState}/>
 }
 
-// userModifier组件 通过上面的wrapper的封装能够读写全局的state和使用dispatch
-// 那么我们肯定会有很多组件，每个组件都这样写一遍肯定是成本很高的
-// 这时候我们就需要抽离一个高阶函数组件完成这件事
-function connect(Component){
-  return (props)=>{
-    const {state,setState} = useContext(appContext)
-    const [,update] = useState({})
-
-    useEffect(()=>{
-      store.subscribe(()=>{
-        update({})  
-      })
-    })
-    const dispatch = (action) => {
-      setState(reducer(state,action))
-      update({})
-    }
-  
-    return <Component {...props} dispatch={dispatch} state={state}/>
-  }
-}
 
 
 // const _UserModifier = ({dispatch,state}) => {
@@ -124,7 +66,7 @@ function connect(Component){
 
 const UserModifier = connect(({dispatch,state,children}) => {
 
-
+  
   console.log('UserModifier执行')
   const onChange = (e) => {
   
