@@ -24,9 +24,12 @@ const 幺儿子 = () => {
   console.log('幺儿子执行')
   return <section>幺儿子</section>
 }
-const User =connect(({state,dispatch}) => {
+const User =connect(state =>{
+  return {user:state.user}
+})(({user}) => {
+  console.log(user,'----user')
   console.log('User执行')
-  return <div>User:{state.user.name}</div>
+  return <div>User:{user.name}</div>
 })
 
 
@@ -64,7 +67,7 @@ const  Wrapper = ()=>{
 // }
 
 
-const UserModifier = connect(({dispatch,state,children}) => {
+const UserModifier = connect()(({dispatch,state,children}) => {
 
   
   console.log('UserModifier执行')
