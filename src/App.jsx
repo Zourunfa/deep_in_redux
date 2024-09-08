@@ -1,28 +1,57 @@
 // 请从课程简介里下载本代码
-import React, { useContext, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 
 const appContext = React.createContext(null)
+
+// 为防止一个地方改动User,所有组件都执行render
+// 将store放在外面,然后只有被connect的组件在state变化的时候才会执行
+const store = {
+  state:{
+    user:{
+      name:'af',
+      age:25
+    }
+  },
+  setState: (newState) =>{
+    // console.log(newState,'---newState')
+    store.state = newState
+    store.listeners.map(fn => fn(store.state))
+  },
+  listeners:[],
+  subscribe(fn){
+    store.listeners.push(fn)
+    return ()=>{
+      const index = store.listeners.indexOf(fn)
+      store.listeners.splice(index,1)
+    }
+  }
+}
 export const App = () => {
-  const [appState, setAppState] = useState({
-    user: {name: 'frank', age: 18}
-  })
-  const contextValue = {appState, setAppState}
+
   return (
-    <appContext.Provider value={contextValue}>
+    <appContext.Provider value={store}>
       <大儿子/>
       <二儿子/>
       <幺儿子/>
     </appContext.Provider>
   )
 }
-const 大儿子 = () => <section>大儿子<User/></section>
-const 二儿子 = () => <section>二儿子<UserModifier x={'123'}>你好吖</UserModifier></section>
-const 幺儿子 = () => <section>幺儿子</section>
-const User = () => {
-  const contextValue = useContext(appContext)
-  return <div>User:{contextValue.appState.user.name}</div>
-
+const 大儿子 = () => {
+  console.log('大儿子执行')
+  return <section>大儿子<User/></section>
 }
+const 二儿子 = () => {
+  console.log('2儿子执行')
+  return <section>二儿子<UserModifier x={'123'}>你好吖</UserModifier></section>
+}
+const 幺儿子 = () => {
+  console.log('幺儿子执行')
+  return <section>幺儿子</section>
+}
+const User =connect(({state,dispatch}) => {
+  console.log('User执行')
+  return <div>User:{state.user.name}</div>
+})
 
 // reducer 规范state的创建流程
 const reducer = (state,{type,payload})=>{
@@ -54,15 +83,22 @@ const  Wrapper = ()=>{
 // userModifier组件 通过上面的wrapper的封装能够读写全局的state和使用dispatch
 // 那么我们肯定会有很多组件，每个组件都这样写一遍肯定是成本很高的
 // 这时候我们就需要抽离一个高阶函数组件完成这件事
-const connect = (Component) =>{
+function connect(Component){
   return (props)=>{
-    const {appState, setAppState} = useContext(appContext)
+    const {state,setState} = useContext(appContext)
+    const [,update] = useState({})
 
+    useEffect(()=>{
+      store.subscribe(()=>{
+        update({})  
+      })
+    })
     const dispatch = (action) => {
-      setAppState(reducer(appState,action))
+      setState(reducer(state,action))
+      update({})
     }
   
-    return <Component {...props} dispatch={dispatch} state={appState}/>
+    return <Component {...props} dispatch={dispatch} state={state}/>
   }
 }
 
@@ -89,6 +125,7 @@ const connect = (Component) =>{
 const UserModifier = connect(({dispatch,state,children}) => {
 
 
+  console.log('UserModifier执行')
   const onChange = (e) => {
   
 
