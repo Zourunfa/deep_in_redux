@@ -1,21 +1,15 @@
 import React, { useContext, useEffect, useState } from 'react'
 export const appContext = React.createContext(null)
 
+
 // 精准渲染:只有自己的数据变化时渲染
 
 
 // 为防止一个地方改动User,所有组件都执行render
 // 将store放在外面,然后只有被connect的组件在state变化的时候才会执行
 export const store = {
-  state: {
-    user: {
-      name: 'af',
-      age: 25,
-    },
-    group:{
-      name:'group1',
-    }
-  },
+  state: undefined,
+  reducer:undefined,
   setState: newState => {
     // console.log(newState,'---newState')
     store.state = newState
@@ -30,6 +24,14 @@ export const store = {
     }
   },
 }
+// let reducer = undefined
+export const createStore = (reducer,initState) =>{
+  store.state = initState
+  store.reducer  =  reducer
+
+  return store
+}
+
 
 const changed =(oldState,newState) => {
   let changed = false
@@ -49,7 +51,7 @@ export const connect = (selector,mapDispatchToProps) => Component => {
   return props => {
 
     const dispatch = action => {
-      setState(reducer(state, action))
+      setState(store.reducer(state, action))
       update({})
     }
     const { state, setState } = useContext(appContext)
@@ -76,16 +78,22 @@ export const connect = (selector,mapDispatchToProps) => Component => {
 }
 
 // reducer 规范state的创建流程
-export const reducer = (state, { type, payload }) => {
-  if (type === 'updateUser') {
-    return {
-      ...state,
-      user: {
-        ...state.user,
-        ...payload,
-      },
-    }
-  } else {
-    return state
-  }
+// export const reducer = (state, { type, payload }) => {
+//   if (type === 'updateUser') {
+//     return {
+//       ...state,
+//       user: {
+//         ...state.user,
+//         ...payload,
+//       },
+//     }
+//   } else {
+//     return state
+//   }
+// }
+
+export const Provider = ({ store,children })=>{
+  return <appContext.Provider value={store}>
+    {children}
+</appContext.Provider>
 }

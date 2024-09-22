@@ -1,16 +1,39 @@
 // 请从课程简介里下载本代码
 import React, { useContext } from 'react'
 import { connectToUser } from './connectors/connectToUsers.js'
-import { appContext, connect, store } from './redux.jsx'
+import { appContext, connect, createStore, Provider } from './redux.jsx'
 
+const reducer = (state,{ type, payload }) => {
+  if (type === 'updateUser') {
+    return {
+      ...state,
+      user: {
+        ...state.user,
+        ...payload,
+      },
+    }
+  } else {
+    return state
+  }
+}
+const initState = {
+  user: {
+    name: 'af',
+    age: 25,
+  },
+  group:{
+    name:'group1',
+  }
+}
+const store = createStore(reducer,initState)
 export const App = () => {  
 
   return (
-    <appContext.Provider value={store}>
+    <Provider store={store}>
       <大儿子/>
       <二儿子/>
       <幺儿子/>
-    </appContext.Provider>
+    </Provider>
   )
 }
 const 大儿子 = () => {
@@ -30,7 +53,7 @@ const 幺儿子 =connect((state)=>{
 
 
 
-const User =connect(userSelector)(({user}) => {
+const User =connectToUser(({user}) => {
   console.log(user,'----user')
   console.log('User执行')
   return <div>User:{user.name}</div>
