@@ -1,8 +1,9 @@
 // 请从课程简介里下载本代码
 import React, { useContext } from 'react'
+import { connectToUser } from './connectors/connectToUsers.js'
 import { appContext, connect, store } from './redux.jsx'
 
-export const App = () => {
+export const App = () => {  
 
   return (
     <appContext.Provider value={store}>
@@ -26,9 +27,10 @@ const 幺儿子 =connect((state)=>{
   console.log('幺儿子执行')
   return <section>幺儿子----group:  {group.name}</section>
 })
-const User =connect(state =>{
-  return {user:state.user}
-})(({user}) => {
+
+
+
+const User =connect(userSelector)(({user}) => {
   console.log(user,'----user')
   console.log('User执行')
   return <div>User:{user.name}</div>
@@ -75,26 +77,22 @@ const  Wrapper = ()=>{
  * 
  */
 
-const UserModifier = connect(null,(dispatch)=>{
-  return {
-    updateUser:(attrs)=>dispatch({type:'updateUser',payload:attrs})
-  }
-})(({updateUser,state,children}) => {
+const UserModifier = connectToUser(({updateUser,user,children}) => {
 
   
   console.log('UserModifier执行')
   const onChange = (e) => {
   
-
+    console.log('UserModifier onChange',e.target.value)
     // setAppState 会触发 contextValue.appState 的更新，前提条件是不能给原来对象的引用，必须给一个新的对象
     // 此原因从而引导reducer的诞生{...contextValue.appState}
     // setAppState(reducer(appState,{type:'updateUser',payload:{name:e.target.value}}))
 
-    updateUser({payload:{name:e.target.value}})
+    updateUser({name:e.target.value})
   }
   return <div>
     {children}
-    <input value={state.user.name}
+    <input value={user.name}
       onChange={onChange}/>
   </div>
 }
