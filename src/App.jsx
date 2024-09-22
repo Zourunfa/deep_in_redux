@@ -69,7 +69,17 @@ const  Wrapper = ()=>{
 // }
 
 
-const UserModifier = connect()(({dispatch,state,children}) => {
+/**
+ * connect(selector,mapdispatchertoProps)
+ * 
+ * 
+ */
+
+const UserModifier = connect(null,(dispatch)=>{
+  return {
+    updateUser:(attrs)=>dispatch({type:'updateUser',payload:attrs})
+  }
+})(({updateUser,state,children}) => {
 
   
   console.log('UserModifier执行')
@@ -80,7 +90,7 @@ const UserModifier = connect()(({dispatch,state,children}) => {
     // 此原因从而引导reducer的诞生{...contextValue.appState}
     // setAppState(reducer(appState,{type:'updateUser',payload:{name:e.target.value}}))
 
-    dispatch({type:'updateUser',payload:{name:e.target.value}})
+    updateUser({payload:{name:e.target.value}})
   }
   return <div>
     {children}

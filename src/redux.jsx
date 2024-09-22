@@ -45,11 +45,18 @@ const changed =(oldState,newState) => {
 // userModifier组件 通过上面的wrapper的封装能够读写全局的state和使用dispatch
 // 那么我们肯定会有很多组件，每个组件都这样写一遍肯定是成本很高的
 // 这时候我们就需要抽离一个高阶函数组件完成这件事
-export const connect = (selector) => Component => {
+export const connect = (selector,mapDispatchToProps) => Component => {
   return props => {
+
+    const dispatch = action => {
+      setState(reducer(state, action))
+      update({})
+    }
     const { state, setState } = useContext(appContext)
     const [, update] = useState({})
     const data = selector? selector(state):{state:state}
+
+    const dispatchers = mapDispatchToProps ? mapDispatchToProps(dispatch) :{dispatch}
     useEffect(() => {
       const unsubscribe = store.subscribe(() => {
         const newData = selector ? selector(store.state) :{state:store.state}
@@ -62,12 +69,9 @@ export const connect = (selector) => Component => {
       // 注意需要取消订阅 否则在selector变化的时候会重复订阅
       return unsubscribe
     },[selector,state])
-    const dispatch = action => {
-      setState(reducer(state, action))
-      update({})
-    }
 
-    return <Component {...props} dispatch={dispatch} {...data} />
+
+    return <Component {...props} {...dispatchers} {...data} />
   }
 }
 
