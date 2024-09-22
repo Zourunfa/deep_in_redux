@@ -20,10 +20,12 @@ const 二儿子 = () => {
   console.log('2儿子执行')
   return <section>二儿子<UserModifier x={'123'}>你好吖</UserModifier></section>
 }
-const 幺儿子 = () => {
+const 幺儿子 =connect((state)=>{
+  return {group:state.group}
+})(({group}) => {
   console.log('幺儿子执行')
-  return <section>幺儿子</section>
-}
+  return <section>幺儿子----group:  {group.name}</section>
+})
 const User =connect(state =>{
   return {user:state.user}
 })(({user}) => {
