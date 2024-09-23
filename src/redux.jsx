@@ -1,21 +1,29 @@
-import React, { useContext, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 export const appContext = React.createContext(null)
 
 
+let  state = undefined
+let  reducer = undefined
+
+let  setState= newState => {
+  // console.log(newState,'---newState')
+  state = newState
+  store.listeners.map(fn => fn(state))
+}
 // 精准渲染:只有自己的数据变化时渲染
 
 
 // 为防止一个地方改动User,所有组件都执行render
 // 将store放在外面,然后只有被connect的组件在state变化的时候才会执行
 export const store = {
-  state: undefined,
-  reducer:undefined,
-  setState: newState => {
-    // console.log(newState,'---newState')
-    store.state = newState
-    store.listeners.map(fn => fn(store.state))
+  getState(){
+    return state
   },
   listeners: [],
+  dispatch :action => {
+    setState(reducer(state, action))
+    update({})
+  },
   subscribe(fn) {
     store.listeners.push(fn)
     return () => {
@@ -24,10 +32,10 @@ export const store = {
     }
   },
 }
-// let reducer = undefined
-export const createStore = (reducer,initState) =>{
-  store.state = initState
-  store.reducer  =  reducer
+const dispatch = store.dispatch
+export const createStore = (_reducer,initState) =>{
+  state = initState
+  reducer  =  _reducer
 
   return store
 }
@@ -50,18 +58,14 @@ const changed =(oldState,newState) => {
 export const connect = (selector,mapDispatchToProps) => Component => {
   return props => {
 
-    const dispatch = action => {
-      setState(store.reducer(state, action))
-      update({})
-    }
-    const { state, setState } = useContext(appContext)
+   
     const [, update] = useState({})
     const data = selector? selector(state):{state:state}
 
     const dispatchers = mapDispatchToProps ? mapDispatchToProps(dispatch) :{dispatch}
     useEffect(() => {
       const unsubscribe = store.subscribe(() => {
-        const newData = selector ? selector(store.state) :{state:store.state}
+        const newData = selector ? selector(state) :{state:state}
         if(changed(data,newData)){
           console.log('data changed')
           update({})
